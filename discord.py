@@ -231,4 +231,5 @@ async def send_event_to_all():
     return count
 
 # Start the bot
-bot.run("DISCORD_BOT_TOKEN")
+import os
+bot.run(os.getenv("DISCORD_BOT_TOKEN"))
