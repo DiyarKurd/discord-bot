@@ -41,11 +41,9 @@ async def on_ready():
     load_opted_in_users()
     print(f"Bot ready: {bot.user}")
 
-# Admin check
 def is_admin(ctx):
     return ctx.author.guild_permissions.administrator
 
-# Opt-in and Opt-out
 @bot.command()
 async def notifyme(ctx):
     opted_in_users.add(ctx.author.id)
@@ -58,7 +56,6 @@ async def stopnotify(ctx):
     save_opted_in_users()
     await ctx.send("You have unsubscribed from notifications.")
 
-# Admin command: set message
 @bot.command()
 async def setmessage(ctx, *, msg):
     if not is_admin(ctx):
@@ -68,7 +65,6 @@ async def setmessage(ctx, *, msg):
     save_event_message(msg)
     await ctx.send("Event message saved.")
 
-# Admin command: preview
 @bot.command()
 async def previewevent(ctx):
     if not is_admin(ctx):
@@ -79,7 +75,6 @@ async def previewevent(ctx):
     except discord.Forbidden:
         await ctx.send("I can't DM you.")
 
-# Admin command: send to all
 @bot.command()
 async def announceevent(ctx):
     if not is_admin(ctx):
@@ -106,20 +101,32 @@ async def announceevent(ctx):
                         continue
     await ctx.send(f"Message sent to {count} users.")
 
-# Help command
 @bot.command()
 async def helpme(ctx):
-    await ctx.send("""
-!notifyme - Subscribe to event DMs  
-!stopnotify - Unsubscribe  
-!setmessage [text] - Set the event message (admin)  
-!previewevent - Preview in your DM (admin)  
-!announceevent - Send to all opted-in/role users (admin)  
-!eventembed [json] - Send Discohook-style embed to yourself  
-(you can also upload a .json file with this command)
-""")
+    embed = discord.Embed(
+        title="Bot Help",
+        description="Here are the commands you can use:",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="!notifyme", value="Subscribe to event DMs", inline=False)
+    embed.add_field(name="!stopnotify", value="Unsubscribe", inline=False)
+    embed.add_field(name="!setmessage [text]", value="Set event message (admin)", inline=False)
+    embed.add_field(name="!previewevent", value="Preview in your DMs (admin)", inline=False)
+    embed.add_field(name="!announceevent", value="Send to all opted-in/role users (admin)", inline=False)
+    embed.add_field(name="!eventembed [json]", value="Send Discohook-style embed to yourself", inline=False)
+    embed.add_field(name="!status", value="Bot status (admin)", inline=False)
+    await ctx.send(embed=embed)
 
-# Embed command
+@bot.command()
+async def status(ctx):
+    if not is_admin(ctx):
+        return await ctx.send("Admins only.")
+    embed = discord.Embed(title="Bot Status", color=discord.Color.green())
+    embed.add_field(name="Servers", value=str(len(bot.guilds)))
+    embed.add_field(name="Opted-in Users", value=str(len(opted_in_users)))
+    embed.add_field(name="Online", value="Yes")
+    await ctx.send(embed=embed)
+
 @bot.command()
 async def eventembed(ctx, *, json_code=None):
     if not is_admin(ctx):
@@ -148,7 +155,7 @@ async def eventembed(ctx, *, json_code=None):
     except Exception as e:
         await ctx.send(f"Error: {e}")
 
-# Flask server for UptimeRobot + dashboard
+# Flask server
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
@@ -199,7 +206,6 @@ def run():
 
 Thread(target=run).start()
 
-# Dashboard helpers
 async def preview_event_to_owner():
     owner = (await bot.application_info()).owner
     try:
@@ -230,6 +236,5 @@ async def send_event_to_all():
                         continue
     return count
 
-# Start the bot
-import os
+# Run the bot
 bot.run(os.getenv("DISCORD_BOT_TOKEN"))
