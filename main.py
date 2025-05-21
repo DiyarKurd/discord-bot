@@ -6,8 +6,6 @@ import json
 import asyncio
 import os
 
-from keep_alive import keep_alive
-keep_alive()
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
